@@ -1,0 +1,16 @@
+name: 'Setup Linked Repository'
+description: 'Setup Linked Repository for later use. For example, match or private pod repositories'
+inputs:
+  grant_endpoint:
+    description: 'endpoint for current project to grant linked project token'
+    default: ${{ secrets.CI_TOKEN_GRANT_ENDPOINT }}
+  linked_repository:
+    description: 'linked repository to get checkout permission for later use'
+    required: true
+  token:
+    description: 'GITHUB_TOKEN'
+    default: ${{ github.token }}
+runs:
+  using: node12
+  main: dist/index.js
+  post: dist/index.js
