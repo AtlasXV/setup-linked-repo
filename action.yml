@@ -3,7 +3,7 @@ description: 'Setup Linked Repository for later use. For example, match or priva
 inputs:
   grant_endpoint:
     description: 'endpoint for current project to grant linked project token'
-    default: ${{ secrets.CI_TOKEN_GRANT_ENDPOINT }}
+    required: true    
   linked_repository:
     description: 'linked repository to get checkout permission for later use'
     required: true
