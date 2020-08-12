@@ -1,11 +1,10 @@
 import * as core from '@actions/core'
-import HTTP from '@actions/http-client'
+import got from 'got'
 import * as github from '@actions/github'
 import * as gitAuthHelper from './git-auth-helper'
 import * as gitCommandManager from './git-command-manager'
 import {IGitCommandManager} from './git-command-manager'
 import {IGitSourceSettings} from './git-source-settings'
-import ifm from '@actions/http-client/interfaces'
 
 interface LinkResult {
   token: string
@@ -20,36 +19,19 @@ export async function getSource(settings: IGitSourceSettings): Promise<void> {
   }
   core.endGroup()
   core.startGroup('Setting up auth')
-
-  const http = new HTTP.HttpClient()
-  const linkedResp: ifm.ITypedResponse<LinkResult> = await http.postJson(
+  const linkedResp = await got.post(
     `${settings.grantEndpoint}/${github.context.repo.owner}/${github.context.repo.repo}`,
     {
-      owner: settings.linkedrepoOwner,
-      repo: settings.linkedrepoName
-    },
-    {['authorization']: settings.repositoryToken}
+      headers: {
+        authorization: settings.repositoryToken
+      },
+      json: {
+        owner: settings.linkedrepoOwner,
+        repo: settings.linkedrepoName
+      }
+    }
   )
-  let linkedToken
-  if (linkedResp.result) {
-    linkedToken = linkedResp.result.token
-  } else {
-    throw new Error('Empty Token')
-  }
-
-  // const linkedResp = await got.post(
-  //   `${settings.grantEndpoint}/${github.context.repo.owner}/${github.context.repo.repo}`,
-  //   {
-  //     headers: {
-  //       authorization: settings.repositoryToken
-  //     },
-  //     json: {
-  //       owner: settings.linkedrepoOwner,
-  //       repo: settings.linkedrepoName
-  //     }
-  //   }
-  // )
-  // const linkedToken = linkedResp.body
+  const linkedToken = JSON.parse(linkedResp.body).token
   core.setSecret(linkedToken)
   settings.linkedToken = linkedToken
   const authHelper = gitAuthHelper.createAuthHelper(git, settings)
